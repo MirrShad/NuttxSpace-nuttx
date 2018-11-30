@@ -104,6 +104,12 @@ void stm32_boardinitialize(void)
 #ifdef CONFIG_BOARD_INITIALIZE
 void board_initialize(void)
 {
+#ifdef CONFIG_DEBUG_SYMBOLS
+  uint32_t cr = getreg32(STM32_DBGMCU_CR);
+  cr |= DBGMCU_CR_STANDBY |DBGMCU_CR_STOP |DBGMCU_CR_SLEEP;
+  putreg32(cr,STM32_DBGMCU_CR);
+#endif
+
 #ifndef CONFIG_LIB_BOARDCTL
   /* Perform board initialization here instead of from the board_app_initialize(). */
 

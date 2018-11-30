@@ -1270,6 +1270,15 @@ config ARCH_BOARD_STM32F4_DISCOVERY
 	---help---
 		STMicro STM32F4-Discovery board based on the STMicro STM32F407VGT6 MCU.
 
+config ARCH_BOARD_SEERDIOBOARD
+	bool "SeerRobotics seerdioboard"
+	depends on ARCH_CHIP_STM32F407VE
+	select ARCH_HAVE_LEDS
+	select ARCH_HAVE_BUTTONS
+	select ARCH_HAVE_IRQBUTTONS
+	---help---
+		seerDIOBoard based made by seer robotics
+
 config ARCH_BOARD_STM32F411E_DISCO
 	bool "STMicro STM32F411E-Discovery board"
 	depends on ARCH_CHIP_STM32F411VE
@@ -1576,6 +1585,13 @@ config ARCH_BOARD_ZKITARM
 		Zilogic System's ARM development Kit, ZKIT-ARM-1769.  This board is based
 		on the NXP LPC1769.  The Nuttx Buildroot toolchain is used by default.
 
+config ARCH_BOARD_FIRESTM32F103
+	bool "fire stm32f103"
+	depends on ARCH_CHIP_STM32F103VE
+	select ARCH_HAVE_LEDS
+	---help---
+		a test just to try add new config
+
 config ARCH_BOARD_SIM
 	bool "User mode simulation"
 	depends on ARCH_SIM
@@ -1808,6 +1824,8 @@ config ARCH_BOARD
 	default "zkit-arm-1769"            if ARCH_BOARD_ZKITARM
 	default "sim"                      if ARCH_BOARD_SIM
 	default "moxa"                     if ARCH_BOARD_MOXA
+	default "firestm32f103"            if ARCH_BOARD_FIRESTM32F103
+	default "seerdioboard"             if ARCH_BOARD_SEERDIOBOARD
 
 comment "Common Board Options"
 
@@ -1816,7 +1834,7 @@ config ARCH_HAVE_LEDS
 
 config ARCH_LEDS
 	bool "Board LED Status support"
-	default y
+	default n
 	depends on ARCH_HAVE_LEDS
 	---help---
 		Use board LEDs to show NuttX execution status state. Unique to boards that have LEDs
@@ -2300,7 +2318,12 @@ endif
 if ARCH_BOARD_CUSTOM
 source "configs/dummy/Kconfig"
 endif
-
+if ARCH_BOARD_FIRESTM32F103
+source "configs/firestm32f103/Kconfig"
+endif
+if ARCH_BOARD_SEERDIOBOARD
+source "configs/seerdioboard/Kconfig"
+endif
 config BOARD_CRASHDUMP
 	bool "Enable Board level logging of crash dumps"
 	default n

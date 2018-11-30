@@ -41,9 +41,18 @@
 #   make -f Makefile.win
 #
 
+.PHONY: update
+
 -include .config
 ifeq ($(CONFIG_WINDOWS_NATIVE),y)
 include tools/Makefile.win
 else
 include tools/Makefile.unix
 endif
+
+update:
+#	openocd -f /usr/local/share/openocd/scripts/interface/stlink-v2.cfg  -f /usr/local/share/openocd/scripts/target/stm32f4x_stlink.cfg -c init -c halt -c "flash write_image erase nuttx.bin 0x08000000" -c reset -c shutdown
+#	openocd -f /usr/local/share/openocd/scripts/interface/stlink-v2.cfg  -f /usr/local/share/openocd/scripts/target/stm32f1x_stlink.cfg -c init -c halt -c "flash write_image erase nuttx.bin 0x08000000" -c reset -c shutdown
+#	openocd -f /usr/local/share/openocd/scripts/interface/jlink.cfg  -f /usr/local/share/openocd/scripts/target/stm32f1x.cfg -c init -c "reset halt" -c "flash write_image erase nuttx.bin 0x08000000" -c reset -c shutdown
+	st-flash write nuttx.bin 0x08000000
+
