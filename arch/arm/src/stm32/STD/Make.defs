@@ -1,0 +1,7 @@
+DIRS := $(shell find .  -maxdepth 3 -type d)
+src = $(foreach dir, $(DIRS), $(wildcard $(dir)/*.c))
+obj = $(patsubst %.c, %.o, $(src))
+
+edit : 
+	@echo "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+	@echo $(obj)

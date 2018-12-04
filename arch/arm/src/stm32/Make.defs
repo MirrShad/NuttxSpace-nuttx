@@ -32,6 +32,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 ############################################################################
+include ./chip/STD/Make.defs
 
 HEAD_ASRC =
 
@@ -270,3 +271,39 @@ endif
 ifeq ($(CONFIG_STM32_BBSRAM),y)
 CHIP_CSRCS += stm32_bbsram.c
 endif
+
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/misc.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_adc.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_can.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_crc.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_cryp.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_cryp_aes.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_cryp_des.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_cryp_tdes.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_dac.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_dbgmcu.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_dcmi.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_dma.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_exti.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_flash.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_fsmc.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_gpio.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_hash.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_hash_md5.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_hash_sha1.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_i2c.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_iwdg.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_pwr.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_rcc.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_rng.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_rtc.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_sdio.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_spi.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_syscfg.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_tim.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_usart.c
+CHIP_CSRCS += $(ARCH_SRCDIR)/chip/STD/FWlib/src/stm32f4xx_wwdg.c
+
+CFLAGS += -I$(ARCH_SRCDIR)/chip/STD
+CFLAGS += -I$(ARCH_SRCDIR)/chip/STD/CMSIS/inc
+CFLAGS += -I$(ARCH_SRCDIR)/chip/STD/FWlib/inc
