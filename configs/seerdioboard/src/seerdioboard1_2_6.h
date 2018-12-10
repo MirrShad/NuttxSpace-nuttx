@@ -1,0 +1,7 @@
+#ifndef _SEERDIOBOARD_1_2_6_H_
+#define _SEERDIOBOARD_1_2_6_H_
+
+#define HEART_LED_1_2_6       (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|\
+                         GPIO_OUTPUT_CLEAR|GPIO_PORTG|GPIO_PIN9)
+
+#endif

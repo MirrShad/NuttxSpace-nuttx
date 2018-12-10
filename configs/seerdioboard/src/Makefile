@@ -39,6 +39,11 @@
 ASRCS =
 CSRCS = stm32_boot.c stm32_bringup.c stm32_spi.c
 
+ifeq ($(CONFIG_SEER_SYSTEM),y)
+CSRCS += hal_gpio.c
+CSRCS += hal_heartled.c
+endif
+
 ifeq ($(CONFIG_ARCH_LEDS),y)
 CSRCS += stm32_autoleds.c
 else
@@ -197,4 +202,4 @@ CSRCS += stm32_netinit.c
 endif
 endif
 
-include $(TOPDIR)/configs/Board.mk
+include ./Board.mk

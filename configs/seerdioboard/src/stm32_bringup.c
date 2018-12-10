@@ -82,6 +82,11 @@
 #  include "stm32_rtc.h"
 #endif
 
+#ifdef CONFIG_SEER_SYSTEM
+#  include <nuttx/leds/heartled.h>
+#endif
+
+
 /****************************************************************************
  * Public Functions
  ****************************************************************************/
@@ -102,6 +107,10 @@
 
 int stm32_bringup(void)
 {
+#ifdef CONFIG_SEER_SYSTEM
+  heartled_register("/dev/heartled");
+#endif
+
 #ifdef HAVE_RTC_DRIVER
   FAR struct rtc_lowerhalf_s *lower;
 #endif

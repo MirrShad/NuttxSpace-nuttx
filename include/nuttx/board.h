@@ -119,6 +119,12 @@
  *
  ****************************************************************************/
 
+#ifdef CONFIG_SEER_SYSTEM
+void heart_led_init(void);
+void heart_led_on(void);
+void heart_led_off(void);
+#endif
+
 /****************************************************************************
  * Name: board_initialize
  *

@@ -3,7 +3,13 @@
 # see the file kconfig-language.txt in the NuttX tools repository.
 #
 
-if ARCH_BOARD_STM32F4_DISCOVERY
+if ARCH_BOARD_SEERDIOBOARD
+
+config SEER_SYSTEM
+	bool "seerdioboard logic"
+	default y
+	---help---
+		Select when try run the whole system
 
 config STM32F4DISBB
 	bool "STM32F4DIS-BB base board"
