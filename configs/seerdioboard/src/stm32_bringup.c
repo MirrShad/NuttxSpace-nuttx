@@ -84,6 +84,7 @@
 
 #ifdef CONFIG_SEER_SYSTEM
 #  include <nuttx/leds/heartled.h>
+#  include <nuttx/input/digitalInput.h>
 #endif
 
 
@@ -109,6 +110,7 @@ int stm32_bringup(void)
 {
 #ifdef CONFIG_SEER_SYSTEM
   heartled_register("/dev/heartled");
+  digitalinput_register("/dev/digitalinput1");
 #endif
 
 #ifdef HAVE_RTC_DRIVER

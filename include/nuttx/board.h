@@ -120,9 +120,13 @@
  ****************************************************************************/
 
 #ifdef CONFIG_SEER_SYSTEM
+
 void heart_led_init(void);
 void heart_led_on(void);
 void heart_led_off(void);
+
+void irq_button_init(int button_id,int(*pf)(int,bool));
+//void timequiry_button_init(void);
 #endif
 
 /****************************************************************************

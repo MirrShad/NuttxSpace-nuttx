@@ -51,6 +51,8 @@
 #define GPIO_OUTPUT_SET               (1 << 8)                   /* Bit 8: If output, inital value of output */
 #define GPIO_OUTPUT_CLEAR             (0)
 
+#define GPIO_EXTI                     (1 << 8)                   /*Bit 8: Configure as EXTI interrupt*/
+
 #  define GPIO_PORT_SHIFT               (4)                        /* Bit 4-7:  Port number */
 #  define GPIO_PORT_MASK                (15 << GPIO_PORT_SHIFT)
 #  define GPIO_PORTA                  (0 << GPIO_PORT_SHIFT)     /*   GPIOA */
@@ -88,6 +90,7 @@
 void board_gpio_initialize(uint32_t cfgset);
 void board_gpio_high(uint32_t cfgset);
 void board_gpio_low(uint32_t cfgset);
+void board_gpio_exti_init(uint32_t cfgset,int(*pf)(int,bool));
 
 #ifdef __cplusplus
 }

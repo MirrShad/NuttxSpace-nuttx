@@ -45,12 +45,18 @@ static int heartled_ioctl(FAR struct file *filep, int cmd,unsigned long arg)
         return ret;
 }
 
+static ssize_t heartled_write(FAR struct file *filep, FAR const char *buffer,
+                             size_t len)
+{
+    return OK;
+}
+
 static const struct file_operations g_heartledops =
 {
   heartled_open,  /* open */
   0, /* close */
   0,  /* read */
-  0, /* write */
+  heartled_write, /* write */
   0,            /* seek */
   heartled_ioctl             /* ioctl */
 #ifndef CONFIG_DISABLE_POLL

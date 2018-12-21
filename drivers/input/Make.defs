@@ -99,6 +99,10 @@ ifeq ($(CONFIG_INPUT_NUNCHUCK),y)
   CSRCS += nunchuck.c
 endif
 
+ifeq ($(CONFIG_SEER_SYSTEM),y)
+  CSRCS += digitalInput.c
+endif
+
 # Include input device driver build support
 
 DEPPATH += --dep-path input

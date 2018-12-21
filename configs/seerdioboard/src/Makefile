@@ -42,6 +42,8 @@ CSRCS = stm32_boot.c stm32_bringup.c stm32_spi.c
 ifeq ($(CONFIG_SEER_SYSTEM),y)
 CSRCS += hal_gpio.c
 CSRCS += hal_heartled.c
+
+CSRCS += hal_button.c
 endif
 
 ifeq ($(CONFIG_ARCH_LEDS),y)
