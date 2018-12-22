@@ -91,7 +91,7 @@ void board_gpio_initialize(uint32_t cfgset);
 void board_gpio_high(uint32_t cfgset);
 void board_gpio_low(uint32_t cfgset);
 void board_gpio_exti_init(uint32_t cfgset,int(*pf)(int,bool));
-
+bool board_gpio_state(uint32_t cfgset);
 #ifdef __cplusplus
 }
 #endif

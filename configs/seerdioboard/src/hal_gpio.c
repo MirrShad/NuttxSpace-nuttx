@@ -105,7 +105,6 @@ void board_gpio_initialize(uint32_t cfgset)
 int buttonIRQ(int irq, FAR void *context, FAR void *arg)
 {
     uint16_t temp = GPIO_ReadInputData(GPIOD);
-    syslog(LOG_DEBUG,"In button IRQ %d\r\n",(temp>>10)&1);
     int buttonid = 0;
     bool isPressed = (temp>>10)&1;
     (*buttonUpperInt)(buttonid,isPressed);
@@ -140,4 +139,11 @@ void board_gpio_high(uint32_t cfgset)
 void board_gpio_low(uint32_t cfgset)
 {
     GPIO_ResetBits(getPort(cfgset),getPin(cfgset));
+}
+
+bool board_gpio_state(uint32_t cfgset)
+{
+    uint16_t temp = GPIO_ReadInputData(GPIOD);
+    bool isPressed = (temp>>10)&1;
+    return isPressed;
 }

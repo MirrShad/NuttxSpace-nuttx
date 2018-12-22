@@ -26,7 +26,10 @@
 #include <nuttx/input/digitalInput.h>
 
 const int MAX_INPUT_NUM = 16;
-
+bool bPressed = false;
+uint8_t signo = 0;
+pid_t trigger_pid = 0;
+bool bInited = false;
 struct digitalinput_config_s
 {
     //bool inputs[MAX_INPUT_NUM];
@@ -58,8 +61,14 @@ static inline int btn_takesem(sem_t *sem);
 
 static int digitalinput_interrupt(int button_id, bool bTriggered)
 {
+    if(!bInited) return 0;
+    irqstate_t flags;
     DEBUGASSERT(input);
-    syslog(LOG_DEBUG,"buttonId %d is Triggerd: %d\r\n",button_id,bTriggered);
+    //syslog(LOG_DEBUG,"buttonId %d is Triggerd: %d\r\n",button_id,bTriggered);
+    flags = enter_critical_section();
+    bPressed = bTriggered;
+    (void)nxsig_queue(trigger_pid,13,(FAR void*)bPressed);
+    leave_critical_section(flags);
 }
 
 static inline int digitalinput_takesem(sem_t *sem)
@@ -118,9 +127,23 @@ errout_with_sem:
   return ret;
 }
 
+static int digitalinput_ioctl(FAR struct file *filep, int cmd, unsigned long arg)
+{
+  switch(cmd)
+  {
+  case INPUT_SIG_REGISTER:
+    trigger_pid = getpid();
+    signo = *(FAR uint8_t *)((uintptr_t)arg);
+    bInited = true;
+    break;
+  }
+  return 0;
+}
+
 static ssize_t digitalinput_read(FAR struct file *filep, FAR char *buffer,
                         size_t buflen)
 {
+    *(bool*)buffer = read_button_state(0);
     return OK;
 }
 
@@ -131,7 +154,7 @@ static const struct file_operations digitalinput_fops =
   digitalinput_read,  /* read */
   NULL,      /* write */
   NULL,      /* seek */
-  NULL  /* ioctl */
+  digitalinput_ioctl  /* ioctl */
 #ifndef CONFIG_DISABLE_POLL
   , NULL /* poll */
 #endif

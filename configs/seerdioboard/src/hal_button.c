@@ -22,6 +22,10 @@ void irq_button_init(int button_id,int(*pf)(int,bool))
     board_gpio_initialize(BUTTON_1);
     board_gpio_exti_init(BUTTON_1,pf);
   }
+}
 
-    
+bool read_button_state(int button_id)
+{
+  if(0 == button_id)
+    return board_gpio_state(BUTTON_1);
 }

@@ -14,6 +14,8 @@
 
 #ifdef CONFIG_SEER_SYSTEM
 
+#define INPUT_SIG_REGISTER  _BTNIOC(0x0001)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
