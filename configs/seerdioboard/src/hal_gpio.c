@@ -13,6 +13,8 @@
 #include <arch/irq.h>
 #include <nuttx/arch.h>
 
+uint32_t button_cfg;
+
 int(*buttonUpperInt)(int,bool);
 
 GPIO_TypeDef* getPort(uint32_t cfgset)
@@ -45,6 +47,11 @@ uint16_t getPin(uint32_t cfgset)
 {
     int pin = (cfgset & GPIO_PIN_MASK) >> GPIO_PIN_SHIFT;
     return GPIO_Pin_0 + (1 << pin );
+}
+
+int getPinShift(uint32_t cfgset)
+{
+    return ((cfgset & GPIO_PIN_MASK) >> GPIO_PIN_SHIFT);
 }
 
 GPIOSpeed_TypeDef getSpeed(uint32_t cfgset)
@@ -80,6 +87,13 @@ bool haveEXTI(uint32_t cfgset)
     return (cfgset & GPIO_EXTI) > 0;
 }
 
+uint32_t getEXTI_LINE(uint32_t cfgset)
+{
+    int shift = getPinShift(cfgset);
+    
+    return (0x00001<<shift);
+}
+
 void board_gpio_initialize(uint32_t cfgset)
 {
     uint32_t RCC_AHB1Periphx;
@@ -88,25 +102,22 @@ void board_gpio_initialize(uint32_t cfgset)
     GPIO_TypeDef* port = getPort(cfgset);
 
     RCC_AHB1Periphx	= RCC_AHB1Periph_GPIOA<< (((uint32_t)port-(uint32_t)GPIOA)/0x400);
-    //RCC_AHB1PeriphClockCmd(RCC_AHB1Periphx, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periphx, ENABLE);
 	
     GPIO_InitStructure.GPIO_Pin = getPin(cfgset);
     GPIO_InitStructure.GPIO_Speed = getSpeed(cfgset); 
     GPIO_InitStructure.GPIO_Mode = getMode(cfgset);
     GPIO_InitStructure.GPIO_PuPd = getPuPd(cfgset);
-//    GPIO_InitStructure.GPIO_OType = getOType(cfgset);
+    GPIO_InitStructure.GPIO_OType = getOType(cfgset);
     GPIO_Init(port, &GPIO_InitStructure);
-
-    //if(haveEXTI(cfgset))
-     //board_gpio_exti_init(cfgset); 
 }
 
 int buttonIRQ(int irq, FAR void *context, FAR void *arg)
 {
-    uint16_t temp = GPIO_ReadInputData(GPIOD);
+    uint32_t cfgset = *(uint32_t*)arg;
+    uint16_t temp = GPIO_ReadInputData(getPort(cfgset));
     int buttonid = 0;
-    bool isPressed = (temp>>10)&1;
+    bool isPressed = (temp>>getPinShift(cfgset))&1;
     (*buttonUpperInt)(buttonid,isPressed);
     EXTI_ClearITPendingBit(EXTI_Line10);
 }
@@ -115,7 +126,6 @@ void board_gpio_exti_init(uint32_t cfgset,int(*pf)(int,bool))
 {
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG,ENABLE);
     uint8_t EXTI_PortSourceX = ((uint8_t)getPort(cfgset) - AHB1PERIPH_BASE)/0x0400;
-    //print("PortSource is %d",EXTI_PortSourceX);
     SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOD,EXTI_PinSource10);
     
     EXTI_InitTypeDef EXTI_InitStructure;
@@ -125,7 +135,8 @@ void board_gpio_exti_init(uint32_t cfgset,int(*pf)(int,bool))
     EXTI_InitStructure.EXTI_LineCmd = ENABLE;
     EXTI_Init(&EXTI_InitStructure);    
 
-    irq_attach(STM32_IRQ_EXTI1510,buttonIRQ,(void *)0);
+    button_cfg = cfgset;
+    irq_attach(STM32_IRQ_EXTI1510,buttonIRQ,&button_cfg);
     up_enable_irq(STM32_IRQ_EXTI1510);
 
     buttonUpperInt = pf;
@@ -144,6 +155,6 @@ void board_gpio_low(uint32_t cfgset)
 bool board_gpio_state(uint32_t cfgset)
 {
     uint16_t temp = GPIO_ReadInputData(GPIOD);
-    bool isPressed = (temp>>10)&1;
+    bool isPressed = (temp>>(getPinShift(cfgset)))&1;
     return isPressed;
 }

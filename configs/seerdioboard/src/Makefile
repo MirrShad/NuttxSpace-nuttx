@@ -44,6 +44,7 @@ CSRCS += hal_gpio.c
 CSRCS += hal_heartled.c
 
 CSRCS += hal_button.c
+
 endif
 
 ifeq ($(CONFIG_ARCH_LEDS),y)
