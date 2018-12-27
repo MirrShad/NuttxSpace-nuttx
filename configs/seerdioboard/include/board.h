@@ -41,6 +41,7 @@
  ************************************************************************************/
 
 #include <nuttx/config.h>
+#include "seerdioboard1_2_6.h"
 
 #ifndef __ASSEMBLY__
 #  include <stdint.h>
@@ -257,8 +258,8 @@
  */
 
 #ifndef CONFIG_STM32F4DISBB
-#  define GPIO_USART2_RX  GPIO_USART2_RX_1     /* PA3, P1 pin 13 */
-#  define GPIO_USART2_TX  GPIO_USART2_TX_1     /* PA2, P1 pin 14 */
+#  define GPIO_USART2_RX  GPIO_USART2_RX_2    /* PA3, P1 pin 13 */
+#  define GPIO_USART2_TX  GPIO_USART2_TX_2     /* PA2, P1 pin 14 */
 #  define GPIO_USART2_CTS GPIO_USART2_CTS_1    /* PA0, P1 pin 11 */
 #  define GPIO_USART2_RTS GPIO_USART2_RTS_1    /* PA1, P1 pin 12 (conflict with USER button) */
 #endif
