@@ -1,4 +1,4 @@
-#include <nuttx/can/can.h>
+#include <nuttx/can/seer_can.h>
 #ifdef ERROR
 #undef ERROR
 #endif
@@ -25,11 +25,11 @@ void InitCANGPIO(CAN_TypeDef* CANx)
 		GPIOx = GPIOA;
 		GPIO_PinSource_BASE = GPIO_PinSource11;
 	}
-	else seer_assert(false); //undefined!
+	//else seer_assert(false); //undefined!
 	
 	if(CANx == CAN1)	GPIO_AF_CANx = GPIO_AF_CAN1;
 	else if(CANx == CAN2)	GPIO_AF_CANx = GPIO_AF_CAN2;
-	else seer_assert(false); //undefined!
+	//else seer_assert(false); //undefined!
 	
 	/* open clock of MOSI MISO SCK nCS */
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOx, ENABLE);
@@ -66,11 +66,11 @@ void InitCAN(CAN_TypeDef* CANx)
 	CAN_InitStructure.CAN_TXFP = ENABLE;
 	CAN_InitStructure.CAN_Mode = CAN_Mode_Normal;	
 
-	CAN_InitStructure.CAN_SJW = CAN_SJW_3tq;
-	CAN_InitStructure.CAN_BS1 = CAN_BS1_8tq;
-	CAN_InitStructure.CAN_BS2 = CAN_BS2_3tq;		
+	CAN_InitStructure.CAN_SJW = CAN_SJW_1tq;
+	CAN_InitStructure.CAN_BS1 = CAN_BS1_6tq;
+	CAN_InitStructure.CAN_BS2 = CAN_BS2_7tq;		
 	
-	CAN_InitStructure.CAN_Prescaler = 13;
+	CAN_InitStructure.CAN_Prescaler = 12;
 	CAN_Init(CANx, &CAN_InitStructure);
 	
 	//config the filter
@@ -118,14 +118,29 @@ void CANInit()
 {
   	InitCANGPIO(CAN1);
 	InitCAN(CAN1);
-	InitCANGPIO(CAN2);
-	InitCAN(CAN2);
+
+	FAR struct can_msg_s testMsg;
+	testMsg.cm_hdr.ch_id = 0x666;
+	testMsg.cm_hdr.ch_rtr = 1;
+	testMsg.cm_hdr.ch_extid = 1;
+	testMsg.cm_hdr.ch_dlc = 4;
+	testMsg.cm_data[0] = 0x11;
+	testMsg.cm_data[1] = 0x22;
+	testMsg.cm_data[2] = 0x33;
+	testMsg.cm_data[3] = 0x44;
+	sendCANMsg(1,&testMsg);
 }
 
-int sendCANMsg(CAN_TypeDef* CANx,FAR struct can_msg_s *uppermsg)
+int sendCANMsg(int can_x,FAR struct can_msg_s *uppermsg)
 {
-    	CanTxMsg msg;
+	CAN_TypeDef* CANx;
+	if(1==can_x)
+		CANx = CAN1;
+	else if(2==can_x)
+		CANx = CAN2;
+	CanTxMsg msg;
 	msg.StdId = uppermsg->cm_hdr.ch_id;
+	msg.ExtId = 0;
 
 	if(1 == uppermsg->cm_hdr.ch_rtr)
 		msg.RTR = CAN_RTR_Data;
@@ -142,8 +157,15 @@ int sendCANMsg(CAN_TypeDef* CANx,FAR struct can_msg_s *uppermsg)
 	for(i=0;i<msg.DLC;i++)
 	{msg.Data[i] = uppermsg->cm_data[i];}
 
-	CAN_Transmit(CANx, &msg);
+	uint8_t temp_mbox = CAN_Transmit(CANx, &msg);
+	while(temp_mbox != CAN_TxStatus_NoMailBox)
+	{
+		syslog("no mail box\r\n");
+		temp_mbox = CAN_Transmit(CANx, &msg);
+	}
+
 	return 0;
+
 }
 
 

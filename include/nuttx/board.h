@@ -120,6 +120,8 @@
  ****************************************************************************/
 
 #ifdef CONFIG_SEER_SYSTEM
+#  include <nuttx/can/can.h>
+
 
 void heart_led_init(void);
 void heart_led_on(void);
@@ -127,7 +129,9 @@ void heart_led_off(void);
 
 void irq_button_init(int button_id,int(*pf)(int,bool));
 bool read_button_state(int button_id);
-//void timequiry_button_init(void);
+
+void CANInit(void);
+int sendCANMsg(int can_x,FAR struct can_msg_s *uppermsg);
 #endif
 
 /****************************************************************************

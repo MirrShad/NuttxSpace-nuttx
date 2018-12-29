@@ -7,11 +7,16 @@
 #include <nuttx/board.h>
 #include <arch/board/board.h>
 
-#include "stm32f4xx.h"
-#include "hal_gpio.h"
-
 #include <arch/irq.h>
 #include <nuttx/arch.h>
+
+#ifdef ERROR
+#undef ERROR
+#endif
+
+
+#include "stm32f4xx.h"
+#include "hal_gpio.h"
 
 uint32_t button_cfg;
 

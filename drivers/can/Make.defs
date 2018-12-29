@@ -50,3 +50,16 @@ VPATH += :can
 CFLAGS += ${shell $(INCDIR) $(INCDIROPT) "$(CC)" $(TOPDIR)$(DELIM)drivers$(DELIM)can}
 endif
 
+
+ifeq ($(CONFIG_SEER_SYSTEM),y)
+
+CSRCS += seer_can.c
+
+# Include CAN device driver build support
+
+DEPPATH += --dep-path can
+VPATH += :can
+CFLAGS += ${shell $(INCDIR) $(INCDIROPT) "$(CC)" $(TOPDIR)$(DELIM)drivers$(DELIM)can}
+endif
+
+

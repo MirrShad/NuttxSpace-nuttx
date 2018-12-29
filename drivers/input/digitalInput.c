@@ -15,12 +15,9 @@
 
 #include <nuttx/irq.h>
 #include <nuttx/arch.h>
-#include <nuttx/wdog.h>
 #include <nuttx/kmalloc.h>
 #include <nuttx/wqueue.h>
 #include <nuttx/fs/fs.h>
-#include <nuttx/spi/spi.h>
-#include <nuttx/random.h>
 
 #include <nuttx/semaphore.h>
 #include <nuttx/input/digitalInput.h>
