@@ -1,4 +1,8 @@
+#include <arch/irq.h>
+#include <nuttx/arch.h>
+
 #include <nuttx/can/seer_can.h>
+
 #ifdef ERROR
 #undef ERROR
 #endif
@@ -46,6 +50,47 @@ void InitCANGPIO(CAN_TypeDef* CANx)
 	GPIO_Init(GPIOx, &GPIO_InitStructure);
 }
 
+int CAN_RxIRQhandler(int irq, FAR void *context, FAR void *arg)
+{
+	CanRxMsg RxMessage;
+	while(CAN_MessagePending(CAN1, CAN_Filter_FIFO0) != 0)
+	{
+		CAN_Receive(CAN1, CAN_Filter_FIFO0, &RxMessage);
+	}
+	CAN_ClearITPendingBit(CAN1, CAN_IT_FMP0);
+}
+
+int CAN_TxIRQhandler(int irq, FAR void *context, FAR void *arg)
+{
+	CAN_ClearITPendingBit(CAN1, CAN_IT_TME);
+}
+
+void InitCANIRQ(CAN_TypeDef* CANx)
+{
+	if(CANx == CAN1) 
+	{
+		irq_attach(STM32_IRQ_CAN1RX0,CAN_RxIRQhandler,(void*)0);
+		up_enable_irq(STM32_IRQ_CAN1RX0); 
+		CAN_ITConfig(CAN1, CAN_IT_FMP0, ENABLE);
+		CAN_ClearITPendingBit(CAN1, CAN_IT_FMP0);
+	}/*else if(CANx == CAN2) 
+	{
+		irq_attach(STM32_IRQ_CAN2RX1,CAN_IRQRxhandler,(void*)0);
+		up_enable_irq(STM32_IRQ_CAN2RX1); 
+		CAN_ITConfig(CAN2, CAN_IT_FMP1, ENABLE);
+		CAN_ClearITPendingBit(CAN2, CAN_IT_FMP1);
+	}*/
+
+	//TX
+	if(CANx == CAN1) 
+	{
+		irq_attach(STM32_IRQ_CAN1TX,CAN_TxIRQhandler,(void*)0);
+		up_enable_irq(STM32_IRQ_CAN1TX); 
+		CAN_ITConfig(CAN1, CAN_IT_TME, ENABLE);
+		CAN_ClearITPendingBit(CAN1, CAN_IT_TME);
+	}
+
+}
 
 void InitCAN(CAN_TypeDef* CANx)
 {
@@ -118,7 +163,8 @@ void CANInit()
 {
   	InitCANGPIO(CAN1);
 	InitCAN(CAN1);
-
+	InitCANIRQ(CAN1);
+/*
 	FAR struct can_msg_s testMsg;
 	testMsg.cm_hdr.ch_id = 0x666;
 	testMsg.cm_hdr.ch_rtr = 1;
@@ -129,6 +175,7 @@ void CANInit()
 	testMsg.cm_data[2] = 0x33;
 	testMsg.cm_data[3] = 0x44;
 	sendCANMsg(1,&testMsg);
+*/
 }
 
 int sendCANMsg(int can_x,FAR struct can_msg_s *uppermsg)
@@ -160,7 +207,7 @@ int sendCANMsg(int can_x,FAR struct can_msg_s *uppermsg)
 	uint8_t temp_mbox = CAN_Transmit(CANx, &msg);
 	while(temp_mbox != CAN_TxStatus_NoMailBox)
 	{
-		syslog("no mail box\r\n");
+		//syslog("no mail box\r\n");
 		temp_mbox = CAN_Transmit(CANx, &msg);
 	}
 
