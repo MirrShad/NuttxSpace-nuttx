@@ -252,3 +252,55 @@ int arch_phy_irq(FAR const char *intf, xcpt_t handler, void *arg,
 #endif
 
 #endif /* CONFIG_STM32F4DISBB && CONFIG_STM32_ETHMAC */
+
+
+
+#if defined(CONFIG_SEER_SYSTEM) && defined(CONFIG_STM32_ETHMAC)
+
+/************************************************************************************
+ * Pre-processor Definitions
+ ************************************************************************************/
+
+#define STM32_ETHMAC_DEVNAME "eth0"
+
+/* Debug ********************************************************************/
+/* Extra, in-depth debug output that is only available if
+ * CONFIG_NETDEV_PHY_DEBUG us defined.
+ */
+
+#ifdef CONFIG_NETDEV_PHY_DEBUG
+#  define phyerr    _err
+#  define phywarn   _warn
+#  define phyinfo   _info
+#else
+#  define phyerr(x...)
+#  define phywarn(x...)
+#  define phyinfo(x...)
+#endif
+
+/************************************************************************************
+ * Private Data
+ ************************************************************************************/
+
+
+/************************************************************************************
+ * Public Functions
+ ************************************************************************************/
+
+/************************************************************************************
+ * Name: stm32_netinitialize
+ *
+ * Description:
+ *   Configure board resources to support networking.
+ *
+ ************************************************************************************/
+
+void weak_function stm32_netinitialize(void)
+{
+  /* Configure PHY /RESET output */
+
+}
+
+
+
+#endif /* CONFIG_SEER_SYSTEM && CONFIG_STM32_ETHMAC */

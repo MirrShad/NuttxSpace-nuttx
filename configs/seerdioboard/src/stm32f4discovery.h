@@ -206,6 +206,10 @@
 #  undef HAVE_NETMONITOR
 #endif
 
+#ifdef CONFIG_SEER_SYSTEM
+#  undef HAVE_NETMONITOR
+#endif
+
 /* procfs File System */
 
 #ifdef CONFIG_FS_PROCFS
@@ -401,6 +405,11 @@
                            GPIO_PORTA|GPIO_PIN1)
 #  define GPIO_EMAC_NRST  (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|\
                            GPIO_OUTPUT_SET|GPIO_PORTE|GPIO_PIN2)
+#endif
+
+#if defined(CONFIG_SEER_SYSTEM) && defined(CONFIG_STM32_ETHMAC)
+#  define GPIO_EMAC_NRST  (GPIO_OUTPUT|GPIO_PUSHPULL|GPIO_SPEED_50MHz|\
+                           GPIO_OUTPUT_SET|GPIO_PORTB|GPIO_PIN6)
 #endif
 
 /****************************************************************************

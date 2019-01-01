@@ -110,6 +110,18 @@
 int stm32_bringup(void)
 {
 #ifdef CONFIG_SEER_SYSTEM
+
+  //temp
+  stm32_configgpio(GPIO_EMAC_NRST);
+  stm32_gpiowrite(GPIO_EMAC_NRST,0);
+  long i;
+  for(i=0;i<0xffffff;)
+  {
+    i++;
+  }
+  stm32_gpiowrite(GPIO_EMAC_NRST,1);
+
+
   heartled_register("/dev/heartled");
   digitalinput_register("/dev/digitalinput1");
   can_register("/dev/can1");
