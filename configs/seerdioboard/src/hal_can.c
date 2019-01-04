@@ -1,13 +1,27 @@
 #include <arch/irq.h>
 #include <nuttx/arch.h>
+#include <queue.h>
+#include <string.h>
 
 #include <nuttx/can/seer_can.h>
-
+#include <nuttx/irq.h>
 #ifdef ERROR
 #undef ERROR
 #endif
 
 #include "stm32f4xx_can.h"
+
+struct can_msg_que_s
+{
+	struct dq_entry_s dq_entry;
+	FAR struct can_msg_s msg;
+};
+
+static dq_queue_t can1_tx_q;
+#define MAX_CAN_MSG_BUF 30
+static int can1_tx_cnt;
+static FAR struct can_msg_que_s* last_can_msg;
+static FAR struct can_msg_que_s can1_tx_buf[MAX_CAN_MSG_BUF];
 
 void InitCANGPIO(CAN_TypeDef* CANx)
 {
@@ -48,6 +62,52 @@ void InitCANGPIO(CAN_TypeDef* CANx)
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_InitStructure.GPIO_Pin = (GPIO_Pin_0|GPIO_Pin_1) << GPIO_PinSource_BASE;
 	GPIO_Init(GPIOx, &GPIO_InitStructure);
+
+	dq_init(&can1_tx_q);
+	can1_tx_cnt = 0;
+	int i = 0;
+	last_can_msg = can1_tx_buf;
+	for(i = 0; i<MAX_CAN_MSG_BUF ; i++)
+	{
+		dq_addlast(&(can1_tx_buf[i].dq_entry),&can1_tx_q);
+	}
+}
+
+void transmitCANmsg(int can_x)//,FAR struct can_msg_s *uppermsg)
+{
+	FAR struct can_msg_que_s* mpb = (FAR struct can_msg_que_s*)dq_remfirst(&can1_tx_q);
+	FAR struct can_msg_s *uppermsg = &(mpb->msg);
+	dq_addfirst(&mpb->dq_entry,&can1_tx_q);
+	CAN_TypeDef* CANx;
+	if(1==can_x)
+		CANx = CAN1;
+	else if(2==can_x)
+		CANx = CAN2;
+	CanTxMsg msg;
+	msg.StdId = uppermsg->cm_hdr.ch_id;
+	msg.ExtId = 0;
+
+	if(1 == uppermsg->cm_hdr.ch_rtr)
+		msg.RTR = CAN_RTR_Data;
+	else
+		msg.RTR = CAN_RTR_Remote;
+
+	if(1 == uppermsg->cm_hdr.ch_extid)	
+		msg.IDE = CAN_Id_Standard;
+	else
+		msg.IDE = CAN_Id_Extended;
+	
+	msg.DLC = uppermsg->cm_hdr.ch_dlc;
+	int i = 0;
+	for(i=0;i<msg.DLC;i++)
+	{msg.Data[i] = uppermsg->cm_data[i];}
+
+	uint8_t temp_mbox = CAN_Transmit(CANx, &msg);
+	while(temp_mbox != CAN_TxStatus_NoMailBox)
+	{
+		//syslog("no mail box\r\n");
+		temp_mbox = CAN_Transmit(CANx, &msg);
+	}
 }
 
 int CAN_RxIRQhandler(int irq, FAR void *context, FAR void *arg)
@@ -62,6 +122,12 @@ int CAN_RxIRQhandler(int irq, FAR void *context, FAR void *arg)
 
 int CAN_TxIRQhandler(int irq, FAR void *context, FAR void *arg)
 {
+	FAR struct can_msg_que_s* mpb = (FAR struct can_msg_que_s*)dq_remfirst(&can1_tx_q);
+	mpb->msg.cm_hdr.ch_id = 0x666;//this is an error code, when we see this, this means an error
+	dq_addlast(&mpb->dq_entry,&can1_tx_q);
+	can1_tx_cnt--;
+	if(can1_tx_cnt!=0)
+		transmitCANmsg(1);
 	CAN_ClearITPendingBit(CAN1, CAN_IT_TME);
 }
 
@@ -180,39 +246,21 @@ void CANInit()
 
 int sendCANMsg(int can_x,FAR struct can_msg_s *uppermsg)
 {
-	CAN_TypeDef* CANx;
-	if(1==can_x)
-		CANx = CAN1;
-	else if(2==can_x)
-		CANx = CAN2;
-	CanTxMsg msg;
-	msg.StdId = uppermsg->cm_hdr.ch_id;
-	msg.ExtId = 0;
+	if(can1_tx_cnt == MAX_CAN_MSG_BUF) return 1;
+	irqstate_t flags = enter_critical_section();
 
-	if(1 == uppermsg->cm_hdr.ch_rtr)
-		msg.RTR = CAN_RTR_Data;
-	else
-		msg.RTR = CAN_RTR_Remote;
-
-	if(1 == uppermsg->cm_hdr.ch_extid)	
-		msg.IDE = CAN_Id_Standard;
-	else
-		msg.IDE = CAN_Id_Extended;
-	
-	msg.DLC = uppermsg->cm_hdr.ch_dlc;
-	int i = 0;
-	for(i=0;i<msg.DLC;i++)
-	{msg.Data[i] = uppermsg->cm_data[i];}
-
-	uint8_t temp_mbox = CAN_Transmit(CANx, &msg);
-	while(temp_mbox != CAN_TxStatus_NoMailBox)
+	FAR struct can_msg_que_s* mpb = (FAR struct can_msg_que_s*)dq_remlast(&can1_tx_q);
+	mpb->msg = *uppermsg;
+	dq_addafter(&last_can_msg->dq_entry,mpb,&can1_tx_q);
+	can1_tx_cnt++;
+	last_can_msg = mpb;
+//if queue==1,means we have to start a sending
+	if(can1_tx_cnt==1)
 	{
-		//syslog("no mail box\r\n");
-		temp_mbox = CAN_Transmit(CANx, &msg);
+		transmitCANmsg(can_x);
 	}
 
+	leave_critical_section(flags);
 	return 0;
-
 }
-
 
