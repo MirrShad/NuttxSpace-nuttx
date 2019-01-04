@@ -247,6 +247,13 @@
 #  define GPIO_CAN2_TX GPIO_CAN2_TX_1
 #endif
 
+/* USART1:
+*/
+#ifndef CONFIG_STM32F4DISBB
+#  define GPIO_USART1_RX  GPIO_USART1_RX_1
+#  define GPIO_USART1_TX  GPIO_USART1_TX_1
+#endif
+
 /* USART2:
  *
  * The STM32F4 Discovery has no on-board serial devices, but the console is
