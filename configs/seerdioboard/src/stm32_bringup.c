@@ -112,6 +112,7 @@ int stm32_bringup(void)
 #ifdef CONFIG_SEER_SYSTEM
 
   //temp
+#if defined(CONFIG_SEER_SYSTEM) && defined(CONFIG_STM32_ETHMAC)
   stm32_configgpio(GPIO_EMAC_NRST);
   stm32_gpiowrite(GPIO_EMAC_NRST,0);
   long i;
@@ -120,7 +121,7 @@ int stm32_bringup(void)
     i++;
   }
   stm32_gpiowrite(GPIO_EMAC_NRST,1);
-
+#endif
 
   heartled_register("/dev/heartled");
   digitalinput_register("/dev/digitalinput1");
