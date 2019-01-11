@@ -249,8 +249,8 @@
 #endif
 
 #ifndef CONFIG_STM32F4DISBB
-#  define GPIO_USART1_RX  GPIO_USART2_RX_1    /* PA3, P1 pin 13 */
-#  define GPIO_USART1_TX  GPIO_USART2_TX_1     /* PA2, P1 pin 14 */
+#  define GPIO_USART1_RX  GPIO_USART1_RX_1    /* PA3, P1 pin 13 */
+#  define GPIO_USART1_TX  GPIO_USART1_TX_1     /* PA2, P1 pin 14 */
 #endif
 
 
