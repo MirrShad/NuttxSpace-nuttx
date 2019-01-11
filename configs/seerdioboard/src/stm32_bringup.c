@@ -71,6 +71,7 @@
 #endif
 
 #include "stm32f4discovery.h"
+#include "seerdioboard1_2_6.h"
 
 /* Conditional logic in stm32f4discovery.h will determine if certain features
  * are supported.  Tests for these features need to be made after including
@@ -110,7 +111,9 @@
 int stm32_bringup(void)
 {
 #ifdef CONFIG_SEER_SYSTEM
-
+  //enable usart2 485 output
+  stm32_configgpio(GPIO_USART2_RS485_DIR);
+  stm32_gpiowrite(GPIO_USART2_RS485_DIR,1);
   //temp
 #if defined(CONFIG_SEER_SYSTEM) && defined(CONFIG_STM32_ETHMAC)
   stm32_configgpio(GPIO_EMAC_NRST);
