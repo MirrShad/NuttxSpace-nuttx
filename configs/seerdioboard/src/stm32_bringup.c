@@ -128,7 +128,7 @@ int stm32_bringup(void)
 
   heartled_register("/dev/heartled");
   //digitalinput_register("/dev/digitalinput1");
-  //can_register("/dev/can1");
+  can_register("/dev/can1");
 #endif
 
 #ifdef HAVE_RTC_DRIVER

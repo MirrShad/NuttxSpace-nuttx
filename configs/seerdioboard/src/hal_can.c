@@ -123,7 +123,7 @@ int CAN_RxIRQhandler(int irq, FAR void *context, FAR void *arg)
 int CAN_TxIRQhandler(int irq, FAR void *context, FAR void *arg)
 {
 	FAR struct can_msg_que_s* mpb = (FAR struct can_msg_que_s*)dq_remfirst(&can1_tx_q);
-	mpb->msg.cm_hdr.ch_id = 0x666;//this is an error code, when we see this, this means an error
+	mpb->msg.cm_hdr.ch_id = 0x555;//this is an error code, when we see this, this means an error
 	dq_addlast(&mpb->dq_entry,&can1_tx_q);
 	can1_tx_cnt--;
 	if(can1_tx_cnt!=0)
@@ -229,7 +229,7 @@ void CANInit()
 {
   	InitCANGPIO(CAN1);
 	InitCAN(CAN1);
-	InitCANIRQ(CAN1);
+	//InitCANIRQ(CAN1);
 /*
 	FAR struct can_msg_s testMsg;
 	testMsg.cm_hdr.ch_id = 0x666;
@@ -244,20 +244,56 @@ void CANInit()
 */
 }
 
+void anothertransmitCANmsg(int can_x ,FAR struct can_msg_s uppermsg)
+{
+	CAN_TypeDef* CANx;
+	if(1==can_x)
+		CANx = CAN1;
+	else if(2==can_x)
+		CANx = CAN2;
+	CanTxMsg msg;
+	msg.StdId = uppermsg.cm_hdr.ch_id;
+	msg.ExtId = 0;
+
+	if(1 == uppermsg.cm_hdr.ch_rtr)
+		msg.RTR = CAN_RTR_Data;
+	else
+		msg.RTR = CAN_RTR_Remote;
+
+	if(1 == uppermsg.cm_hdr.ch_extid)	
+		msg.IDE = CAN_Id_Standard;
+	else
+		msg.IDE = CAN_Id_Extended;
+	
+	msg.DLC = uppermsg.cm_hdr.ch_dlc;
+	int i = 0;
+	for(i=0;i<msg.DLC;i++)
+	{msg.Data[i] = uppermsg.cm_data[i];}
+
+	syslog("send id 0x%x",msg.StdId);
+	uint8_t temp_mbox = CAN_Transmit(CANx, &msg);
+	/*while(temp_mbox != CAN_TxStatus_NoMailBox)
+	{
+		//syslog("no mail box\r\n");
+		temp_mbox = CAN_Transmit(CANx, &msg);
+	}*/
+}
+
 int sendCANMsg(int can_x,FAR struct can_msg_s *uppermsg)
 {
 	if(can1_tx_cnt == MAX_CAN_MSG_BUF) return 1;
 	irqstate_t flags = enter_critical_section();
 
-	FAR struct can_msg_que_s* mpb = (FAR struct can_msg_que_s*)dq_remlast(&can1_tx_q);
-	mpb->msg = *uppermsg;
-	dq_addafter(&last_can_msg->dq_entry,mpb,&can1_tx_q);
+	//FAR struct can_msg_que_s* mpb = (FAR struct can_msg_que_s*)dq_remlast(&can1_tx_q);
+	//mpb->msg = *uppermsg;
+	//dq_addafter(&last_can_msg->dq_entry,mpb,&can1_tx_q);
 	can1_tx_cnt++;
-	last_can_msg = mpb;
+	//last_can_msg = mpb;
 //if queue==1,means we have to start a sending
-	if(can1_tx_cnt==1)
+	//if(can1_tx_cnt==1)
 	{
-		transmitCANmsg(can_x);
+		struct can_msg_s msg = *uppermsg;
+		anothertransmitCANmsg(can_x,msg);
 	}
 
 	leave_critical_section(flags);
