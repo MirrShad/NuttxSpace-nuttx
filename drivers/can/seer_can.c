@@ -24,6 +24,7 @@
 #include <nuttx/board.h>
 
 ///bool bInited = false;
+sem_t can_readSem;
 
 struct can_config_s
 {
@@ -76,6 +77,45 @@ errout_with_sem:
   return ret;
 }
 
+static int canread_interrupt()
+{
+  int value;
+	int status = sem_getvalue(&can_readSem, &value);
+	if(status<0){
+		printf("Error: chassis new speed cmd can not get semophore value\r\n");
+	}
+	status = sem_post(&can_readSem);
+	if(status!=0){
+		printf("Error: chassis new speed cmd can not post semophore value\r\n");
+	}
+  return 0;
+}
+
+static ssize_t can_read(FAR struct file *filep, FAR char *buffer,
+                        size_t buflen)
+{
+  int value;
+	int status = sem_getvalue(&can_readSem, &value);
+	if(status<0){
+		printf("Error: canread_interrupt can not get semophore value\r\n");
+    return -1*errno;
+	}
+  //bug!!!!! just for emergency ignore other interrupt here
+  do{
+    status = sem_wait(&can_readSem);
+    if(errno==EINTR && status!=0){
+      ;//printf("temparory Ignore other interrupt\r\n");
+    }else if(status!=0){
+		  printf("Error: canread_interrupt can not wait semophore value %d\r\n",errno);
+      return -1;
+    }
+    else break;
+  }while(true);
+
+  CAN_getMsg((FAR struct can_msg_s*)buffer);
+  //syslog(LOG_DEBUG,"get msg 0x%x\r\n",((FAR struct can_msg_s*)buffer)->cm_hdr.ch_id);
+  return 0;
+}
 
 static ssize_t can_write(FAR struct file *filep,FAR const char *buffer, size_t buflen)
 {
@@ -93,7 +133,7 @@ static const struct file_operations can_fops =
 {
   can_open,  /* open */
   NULL, /* close */
-  NULL,  /* read */
+  can_read,  /* read */
   can_write,      /* write */
   NULL,      /* seek */
   can_ioctl  /* ioctl */
@@ -130,6 +170,14 @@ int can_register(FAR const char *devname)
       ierr("ERROR: register_driver failed: %d\n", ret);
       goto errout_with_priv;
     }
+
+  int value;
+	int status = sem_getvalue(&can_readSem, &value);
+  if(status<0){
+		printf("Error: can_register can not get semophore value\r\n");
+	}
+
+  irq_can_init(canread_interrupt);
 
   return OK;
 

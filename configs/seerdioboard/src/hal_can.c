@@ -18,10 +18,15 @@ struct can_msg_que_s
 };
 
 static dq_queue_t can1_tx_q;
+static dq_queue_t can1_rx_q;
 #define MAX_CAN_MSG_BUF 30
 static int can1_tx_cnt;
+static int can1_rx_cnt;
 static FAR struct can_msg_que_s* last_can_msg;
 static FAR struct can_msg_que_s can1_tx_buf[MAX_CAN_MSG_BUF];
+static FAR struct can_msg_que_s can1_rx_buf[MAX_CAN_MSG_BUF];
+
+int (*canRxSigInt)();
 
 void InitCANGPIO(CAN_TypeDef* CANx)
 {
@@ -71,6 +76,9 @@ void InitCANGPIO(CAN_TypeDef* CANx)
 	{
 		dq_addlast(&(can1_tx_buf[i].dq_entry),&can1_tx_q);
 	}
+
+	dq_init(&can1_rx_q);
+	can1_rx_cnt = 0;
 }
 
 void transmitCANmsg(int can_x)//,FAR struct can_msg_s *uppermsg)
@@ -116,12 +124,34 @@ int CAN_RxIRQhandler(int irq, FAR void *context, FAR void *arg)
 	while(CAN_MessagePending(CAN1, CAN_Filter_FIFO0) != 0)
 	{
 		CAN_Receive(CAN1, CAN_Filter_FIFO0, &RxMessage);
+		can1_rx_buf[can1_rx_cnt].msg.cm_hdr.ch_id = RxMessage.StdId;
+		can1_rx_buf[can1_rx_cnt].msg.cm_hdr.ch_rtr = 1;
+		can1_rx_buf[can1_rx_cnt].msg.cm_hdr.ch_extid = 1;
+		can1_rx_buf[can1_rx_cnt].msg.cm_hdr.ch_dlc = RxMessage.DLC;
+		int i = 0;
+		for(i=0;i<RxMessage.DLC;i++)
+		{
+			can1_rx_buf[can1_rx_cnt].msg.cm_data[i] = RxMessage.Data[i];
+		}
+		dq_addlast(&(can1_rx_buf[can1_rx_cnt].dq_entry),&can1_rx_q);
+		can1_rx_cnt++;
+		if(can1_rx_cnt>=MAX_CAN_MSG_BUF) can1_rx_cnt = 0;
 	}
 	CAN_ClearITPendingBit(CAN1, CAN_IT_FMP0);
+	//report rcv message here
+	canRxSigInt();
+}
+
+int CAN_getMsg(FAR struct can_msg_s* msg)
+{
+	FAR struct can_msg_que_s* mpb = (FAR struct can_msg_que_s*)dq_remfirst(&can1_rx_q);
+	memcpy(msg,&(mpb->msg),sizeof(struct can_msg_s));
+	//syslog(LOG_DEBUG,"get msg 0x%x\r\n",msg->cm_hdr.ch_id);
+	return 0;
 }
 
 int CAN_TxIRQhandler(int irq, FAR void *context, FAR void *arg)
-{
+{/*
 	FAR struct can_msg_que_s* mpb = (FAR struct can_msg_que_s*)dq_remfirst(&can1_tx_q);
 	mpb->msg.cm_hdr.ch_id = 0x555;//this is an error code, when we see this, this means an error
 	dq_addlast(&mpb->dq_entry,&can1_tx_q);
@@ -129,7 +159,7 @@ int CAN_TxIRQhandler(int irq, FAR void *context, FAR void *arg)
 	if(can1_tx_cnt!=0)
 		transmitCANmsg(1);
 	CAN_ClearITPendingBit(CAN1, CAN_IT_TME);
-}
+*/}
 
 void InitCANIRQ(CAN_TypeDef* CANx)
 {
@@ -148,13 +178,13 @@ void InitCANIRQ(CAN_TypeDef* CANx)
 	}*/
 
 	//TX
-	if(CANx == CAN1) 
+	/*if(CANx == CAN1) 
 	{
 		irq_attach(STM32_IRQ_CAN1TX,CAN_TxIRQhandler,(void*)0);
 		up_enable_irq(STM32_IRQ_CAN1TX); 
 		CAN_ITConfig(CAN1, CAN_IT_TME, ENABLE);
 		CAN_ClearITPendingBit(CAN1, CAN_IT_TME);
-	}
+	}*/
 
 }
 
@@ -229,7 +259,7 @@ void CANInit()
 {
   	InitCANGPIO(CAN1);
 	InitCAN(CAN1);
-	//InitCANIRQ(CAN1);
+	InitCANIRQ(CAN1);
 /*
 	FAR struct can_msg_s testMsg;
 	testMsg.cm_hdr.ch_id = 0x666;
@@ -274,7 +304,7 @@ void anothertransmitCANmsg(int can_x ,FAR struct can_msg_s uppermsg)
 	uint8_t temp_mbox = CAN_Transmit(CANx, &msg);
 	while(temp_mbox == CAN_TxStatus_NoMailBox)
 	{
-		syslog(LOG_DEBUG,"no mail box\r\n");
+		syslog(LOG_DEBUG,"no mail box, try send ID: 0x%x: 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x 0x%x\r\n",msg.StdId,msg.Data[0],msg.Data[1],msg.Data[2],msg.Data[3],msg.Data[4],msg.Data[5],msg.Data[6],msg.Data[7]);
 		temp_mbox = CAN_Transmit(CANx, &msg);
 	}
 }
@@ -300,3 +330,7 @@ int sendCANMsg(int can_x,FAR struct can_msg_s *uppermsg)
 	return 0;
 }
 
+int irq_can_init(int(*pf)())
+{
+	canRxSigInt = pf;
+}

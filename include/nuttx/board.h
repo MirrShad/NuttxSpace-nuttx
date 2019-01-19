@@ -132,6 +132,7 @@ bool read_button_state(int button_id);
 
 void CANInit(void);
 int sendCANMsg(int can_x,FAR struct can_msg_s *uppermsg);
+int irq_can_init(int(*pf)());
 #endif
 
 /****************************************************************************
