@@ -270,13 +270,13 @@ void anothertransmitCANmsg(int can_x ,FAR struct can_msg_s uppermsg)
 	for(i=0;i<msg.DLC;i++)
 	{msg.Data[i] = uppermsg.cm_data[i];}
 
-	syslog("send id 0x%x",msg.StdId);
+	//syslog("send id 0x%x",msg.StdId);
 	uint8_t temp_mbox = CAN_Transmit(CANx, &msg);
-	/*while(temp_mbox != CAN_TxStatus_NoMailBox)
+	while(temp_mbox == CAN_TxStatus_NoMailBox)
 	{
-		//syslog("no mail box\r\n");
+		syslog(LOG_DEBUG,"no mail box\r\n");
 		temp_mbox = CAN_Transmit(CANx, &msg);
-	}*/
+	}
 }
 
 int sendCANMsg(int can_x,FAR struct can_msg_s *uppermsg)
@@ -287,7 +287,7 @@ int sendCANMsg(int can_x,FAR struct can_msg_s *uppermsg)
 	//FAR struct can_msg_que_s* mpb = (FAR struct can_msg_que_s*)dq_remlast(&can1_tx_q);
 	//mpb->msg = *uppermsg;
 	//dq_addafter(&last_can_msg->dq_entry,mpb,&can1_tx_q);
-	can1_tx_cnt++;
+	//can1_tx_cnt++;
 	//last_can_msg = mpb;
 //if queue==1,means we have to start a sending
 	//if(can1_tx_cnt==1)
