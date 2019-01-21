@@ -129,6 +129,14 @@ int stm32_bringup(void)
   heartled_register("/dev/heartled");
   //digitalinput_register("/dev/digitalinput1");
   can_register("/dev/can1");
+
+//open pwr do
+  stm32_configgpio(PWR_DO_0);
+  stm32_gpiowrite(PWR_DO_0,1);
+  stm32_configgpio(PWR_DO_5);
+  stm32_gpiowrite(PWR_DO_5,1);
+  stm32_configgpio(PWR_DO_6);
+  stm32_gpiowrite(PWR_DO_6,1);
 #endif
 
 #ifdef HAVE_RTC_DRIVER
